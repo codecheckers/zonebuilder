@@ -1,0 +1,185 @@
+---
+output:
+  pdf_document:
+    toc: false
+    includes:
+       in_header: codecheck-preamble.sty
+    latex_engine: xelatex
+---
+
+```{r rsetup,eval=TRUE,include=FALSE}
+require("codecheck")
+require("knitr")
+require("rprojroot")
+require("yaml")
+require("xtable")
+require("tibble")
+require("readr")
+options(width = 60)
+opts_chunk$set(cache = FALSE)
+
+root <- find_root("codecheck.yml")
+```
+
+```{r codecheck_logo, echo=FALSE,results='asis'}
+latex_codecheck_logo()
+```
+
+```{r manifest, eval=TRUE, include=FALSE}
+metadata <- codecheck_metadata(root)
+manifest <- metadata$manifest
+
+dest_dir <- file.path(root, "codecheck", "outputs")
+## Create the outputs directory if missing
+if (!dir.exists(dest_dir) ) {
+  dir.create(dest_dir)
+}
+
+manifest_df <- copy_manifest_files(root, metadata,
+                                  dest_dir, keep_full_path = FALSE,
+                                  overwrite = FALSE
+                                  )
+```
+
+---
+title: `r paste("CODECHECK certificate", metadata$certificate)`
+subtitle: `r codecheck:::as_latex_url(metadata$report)`
+---
+
+```{r summary_metadata, echo=FALSE, results='asis'}
+latex_summary_of_metadata(metadata)
+```
+
+```{r summary_manifest, echo=FALSE, results='asis'}
+latex_summary_of_manifest(metadata, manifest_df, root)
+```
+
+# Summary
+
+This codecheck successfully reproduces the key figures and functionality described in the ClockBoard paper. The zonebuilder R package installs correctly from both CRAN and GitHub, and all core functions work as documented. The reproduction demonstrates the flexibility of the ClockBoard zoning system through various parameter configurations and confirms the package's utility for urban analysis applications.
+
+\clearpage
+
+# CODECHECKER notes
+
+```{r git_sha, echo=FALSE}
+gitInfo <- ""
+if(git2r::in_repository(root)) {
+  gitInfo <- paste0("This check is based on the commit `", git2r::last_commit()$sha, "`.")
+}
+```
+
+The GitHub repository for the zonebuilder package is available at https://github.com/zonebuilders/zonebuilder.
+`r gitInfo`
+
+The code was written in R and uses several key dependencies including sf for spatial operations, dplyr for data manipulation, and leaflet for interactive mapping. The package provides a comprehensive set of functions for creating clock-based zoning systems.
+
+## Installation and Setup
+
+I installed the zonebuilder package from CRAN using:
+```r
+install.packages("zonebuilder")
+```
+
+I also tested the development version from GitHub:
+```r
+remotes::install_github("zonebuilders/zonebuilder")
+```
+
+Both installations completed successfully without dependency conflicts.
+
+## Reproduction Process
+
+I systematically reproduced each figure from the paper:
+
+**Figure 2 (Basic ClockBoard)**: Successfully created using `zb_zone()` function with London city center coordinates. The function correctly generates the default 12 segments and 4 concentric rings as described in the paper.
+
+**Figure 3a (Doughnut zones)**: Reproduced using `zb_doughnut()` function, which creates concentric rings without radial divisions. The zones properly represent distance-based accessibility analysis.
+
+**Figure 3b (Segment zones)**: Created with `zb_segment()` function, producing radial divisions without concentric rings. This demonstrates directional analysis capabilities.
+
+**Figure 4 (Rectangular grid comparison)**: Generated using `zb_quadrat()` function to show traditional grid-based zoning versus the clock-based approach.
+
+## Parameter Flexibility Testing
+
+I conducted additional tests to verify the system's flexibility:
+
+- **3 rings configuration**: Modified the default 4 rings to 3 using the `n_circles` parameter
+- **8 segments configuration**: Changed from 12 to 8 segments using the `n_segments` parameter
+- **Interactive mapping**: Created leaflet-based interactive maps showing the zoning system with geographic context
+
+\clearpage
+
+# Manifest files
+
+```{r, echo=FALSE, results="asis", width=100}
+for (i in c(1:nrow(manifest_df))) {
+  path <- manifest_df[i, "dest"]
+  if(stringr::str_ends(path, "(png|pdf|jpg|jpeg)")) {
+    cat("## ", basename(path), "\n\n")
+    cat("**Comment:** ", manifest_df[i,"comment"], "\n\n")
+    cat(paste0("![", manifest_df[i,"comment"], "](", path, ")\n"))
+  } else if (stringr::str_ends(path, "(Rout|txt)")) {
+    cat("## ", basename(path), "\n\n")
+    cat("\\scriptsize \n\n", "```txt\n")
+    cat(readLines(path), sep = "\n")
+    cat("\n\n``` \n\n", "\\normalsize \n\n")
+  } else if (stringr::str_ends(path, "csv")) {
+    cat("## ", basename(path), "\n\n", "Summary statistics of tabular data:", "\n\n")
+    cat("\\scriptsize \n\n", "```txt\n")
+    print(skimr::skim(read.csv(path)))
+    cat("\n\n``` \n\n", "\\normalsize \n\n")
+  } else if (stringr::str_ends(path, "(xls|xlsx)")) {
+    cat("## ", basename(path), "\n\n", "Partial content of tabular data:", "\n\n")
+    cat("\\scriptsize \n\n", "```txt\n")
+    print(readxl::read_excel(path))
+    cat("\n\n``` \n\n", "\\normalsize \n\n")
+  } else if (stringr::str_ends(path, "(htm|html)")) {
+    if(Sys.which("wkhtmltopdf") != "") {
+      cat("## ", basename(path), "\n\n", "Content of HTML file (starts on next page):", "\n\n")
+      out_file <- paste0(path, ".pdf")
+      system2("wkhtmltopdf", c(shQuote(path), shQuote(out_file)))
+      cat(paste0("\\includepdf[pages={-}]{", out_file, "}"))
+      cat("\n\n End of ", basename(path), "on previous page.", "\n\n")
+    } else {
+      cat("## ", basename(path), "\n\n")
+      cat("Cannot include output file as figure.")
+    }
+  } else {
+    cat("## ", basename(path), "\n\n")
+    cat("Cannot include output file as figure.")
+  }
+  
+  cat("\\clearpage \n\n")
+}
+```
+
+\clearpage
+
+## Acknowledgements
+
+I would like to thank the authors Robin Lovelace, Martijn Tennekes, and Dustin Carlino for creating a well-documented and reproducible research package. The zonebuilder package represents excellent reproducible research practices with clear documentation and accessible code.
+
+# Citing this document
+
+```{r, results='asis',echo=FALSE}
+cite_certificate(metadata)
+```
+
+# About CODECHECK
+
+This certificate confirms that the codechecker could independently reproduce the results of a computational analysis given the data and code from a third party. A CODECHECK does not check whether the original computation analysis is correct. However, as all materials required for the reproduction are freely available by following the links in this document, the reader can then study for themselves the code and data.
+
+# About this document
+
+This document was created using [R Markdown](https://rmarkdown.rstudio.com/) using the [`codecheck`](https://github.com/codecheckers/codecheck) R package.
+`make codecheck.pdf` will regenerate the report file.
+
+```{r}
+sessionInfo()
+```
+
+```{r, include=FALSE, eval=FALSE}
+# render this document in RStudio
+rmarkdown::render("codecheck.Rmd", output_format = "pdf_document") 
+```

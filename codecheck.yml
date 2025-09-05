@@ -1,0 +1,44 @@
+---
+version: https://codecheck.org.uk/spec/config/1.0/
+
+paper:
+  title: "ClockBoard: A zoning system for urban analysis"
+  authors:
+    - name: Robin Lovelace
+      ORCID: 0000-0001-5679-6536
+    - name: Martijn Tennekes
+      ORCID: 0000-0002-6506-9522
+    - name: Dustin Carlino
+      ORCID: 0000-0002-5565-0989
+  reference: https://doi.org/10.5311/JOSIS.2022.24.172
+
+manifest:
+  - file: codecheck/outputs/figure2_clockboard_basic.png
+    comment: "Reproduction of Figure 2: Basic ClockBoard zoning system for London"
+  - file: codecheck/outputs/figure3a_doughnuts.png
+    comment: "Reproduction of Figure 3a: Doughnut zones (concentric rings)"
+  - file: codecheck/outputs/figure3b_segments.png
+    comment: "Reproduction of Figure 3b: Segment zones (clock divisions)"
+  - file: codecheck/outputs/figure4_rectangular_grid.png
+    comment: "Reproduction of Figure 4: Rectangular grid comparison"
+  - file: codecheck/outputs/test_3_rings.png
+    comment: "Parameter test: 3 rings instead of default configuration"
+  - file: codecheck/outputs/test_8_segments.png
+    comment: "Parameter test: 8 segments instead of default 12"
+  - file: codecheck/outputs/test_interactive_leaflet.png
+    comment: "Screenshot of interactive leaflet map showing zoning system with geographic context"
+
+codechecker:
+  - name: Subhan Ali
+    ORCID: 0009-0003-7546-1717
+
+summary: >
+  Successfully reproduced all main figures from the ClockBoard paper using the 
+  zonebuilder R package. All core functions (zb\_zone, zb\_doughnut, zb\_segment, 
+  zb\_quadrat) work as described. Package installs correctly from CRAN and GitHub. 
+  Interactive mapping requires coordinate transformation but works properly. 
+  Parameter flexibility confirmed through additional tests.
+repository: https://github.com/codecheckers/zonebuilder
+check_time: "2025-09-04 12:00:00"  
+certificate: 2025-024
+report: https://zenodo.org/record/17059066
