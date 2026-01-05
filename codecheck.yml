@@ -40,5 +40,5 @@ summary: >
   Parameter flexibility confirmed through additional tests.
 repository: https://github.com/codecheckers/zonebuilder
 check_time: "2025-09-04 12:00:00"  
-certificate: 2025-024
+certificate: 2025-027
 report: https://zenodo.org/record/17059066
