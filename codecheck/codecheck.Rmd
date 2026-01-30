@@ -88,25 +88,116 @@ remotes::install_github("zonebuilders/zonebuilder")
 
 Both installations completed successfully without dependency conflicts.
 
+## Source of Reproduction Code
+
+**The paper itself does not provide explicit code for reproducing the figures.** Therefore, I adapted the reproduction code from:
+
+1. **Primary source**: Example code in the package's [GitHub README](https://github.com/zonebuilders/zonebuilder/blob/master/README.md)
+2. Function documentation and help files (`?zb_zone`, `?zb_doughnut`, etc.)
+3. The methodology described in the paper
+
+The README provides clear examples using `london_c()` and `london_a()` with functions like `zb_zone()`, `zb_doughnut()`, `zb_segment()`, and `zb_quadrat()`, which I used as the basis for reproducing the paper's figures.
+
 ## Reproduction Process
 
-I systematically reproduced each figure from the paper:
+I systematically reproduced each figure from the paper using the following exact function calls:
 
-**Figure 2 (Basic ClockBoard)**: Successfully created using `zb_zone()` function with London city center coordinates. The function correctly generates the default 12 segments and 4 concentric rings as described in the paper.
+### Figure 2 (Basic ClockBoard)
 
-**Figure 3a (Doughnut zones)**: Reproduced using `zb_doughnut()` function, which creates concentric rings without radial divisions. The zones properly represent distance-based accessibility analysis.
+```r
+library(zonebuilder)
+library(tmap)
 
-**Figure 3b (Segment zones)**: Created with `zb_segment()` function, producing radial divisions without concentric rings. This demonstrates directional analysis capabilities.
+# Using built-in London functions from zonebuilder package
+zones_basic <- zb_zone(london_c(), london_a())
 
-**Figure 4 (Rectangular grid comparison)**: Generated using `zb_quadrat()` function to show traditional grid-based zoning versus the clock-based approach.
+# Create and save plot using zb_plot
+png("codecheck/outputs/figure2_clockboard_basic.png", width = 800, height = 600)
+zb_plot(zones_basic)
+dev.off()
+```
+
+### Figure 3a (Doughnut zones)
+
+```r
+# Create concentric rings only (no radial segments)
+zones_doughnut <- zb_doughnut(london_c(), london_a(), n_circles = 5)
+
+# Create and save plot
+png("codecheck/outputs/figure3a_doughnuts.png", width = 800, height = 600)
+zb_plot(zones_doughnut)
+dev.off()
+```
+
+### Figure 3b (Segment zones)
+
+```r
+# Create radial segments only (no concentric rings)
+zones_segments <- zb_segment(london_c(), n_segments = 12)
+
+# Create and save plot
+png("codecheck/outputs/figure3b_segments.png", width = 800, height = 600)
+zb_plot(zones_segments)
+dev.off()
+```
+
+### Figure 4 (Rectangular grid comparison)
+
+```r
+# Create rectangular grid
+zones_grid <- zb_quadrat(london_a(), ncol = 10)
+
+# Create and save plot
+png("codecheck/outputs/figure4_rectangular_grid.png", width = 800, height = 600)
+plot(zones_grid)
+dev.off()
+```
 
 ## Parameter Flexibility Testing
 
 I conducted additional tests to verify the system's flexibility:
 
-- **3 rings configuration**: Modified the default 4 rings to 3 using the `n_circles` parameter
-- **8 segments configuration**: Changed from 12 to 8 segments using the `n_segments` parameter
-- **Interactive mapping**: Created leaflet-based interactive maps showing the zoning system with geographic context
+### Test: 8 segments configuration
+
+```r
+# Changed from default 12 to 8 segments
+zones_8seg <- zb_zone(london_c(), london_a(), n_segments = 8)
+
+png("codecheck/outputs/test_8_segments.png", width = 800, height = 600)
+zb_plot(zones_8seg)
+dev.off()
+```
+
+### Test: 3 rings configuration
+
+```r
+# Modified the default to 3 rings
+zones_3rings <- zb_zone(london_c(), london_a(), n_circles = 3)
+
+png("codecheck/outputs/test_3_rings.png", width = 800, height = 600)
+zb_plot(zones_3rings)
+dev.off()
+```
+
+### Test: Interactive mapping
+
+```r
+library(sf)
+library(leaflet)
+
+# Create zones with custom parameters for interactive display
+zones_interactive <- zb_zone(london_c(), london_a(), n_circles = 4, n_segments = 8)
+
+# Transform to WGS84 for leaflet compatibility
+zones_lonlat <- st_transform(zones_interactive, 4326)
+
+# Create interactive map (opens in browser)
+leaflet(zones_lonlat) %>% 
+  addTiles() %>% 
+  addPolygons()
+
+# Screenshot saved manually as test_interactive_leaflet.png
+```
 
 \clearpage
 
